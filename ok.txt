@@ -1,0 +1,8 @@
+﻿aiohttp==3.9.3
+better-proxy==1.1.5
+captchatools==1.5.0
+fake-useragent==1.5.1
+loguru==0.7.2
+RandomWords==0.4.0
+names==0.3.0
+tenacity==8.2.3
