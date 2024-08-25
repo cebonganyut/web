@@ -85,11 +85,11 @@ def main():
 
     while True:
         try:
-            max_workers = int(input("Masukkan jumlah ThreadPoolExecutor (1-10): "))
-            if 1 <= max_workers <= 10:
+            max_workers = int(input("Masukkan jumlah ThreadPoolExecutor (1-100): "))
+            if 1 <= max_workers <= 100:
                 break
             else:
-                print(f"{Fore.YELLOW}Mohon masukkan angka antara 1 dan 10.{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Mohon masukkan angka antara 1 dan 100.{Style.RESET_ALL}")
         except ValueError:
             print(f"{Fore.YELLOW}Mohon masukkan angka yang valid.{Style.RESET_ALL}")
 
