@@ -83,7 +83,19 @@ def main():
 
     print(f"{Fore.CYAN}Berhasil memuat {len(proxies)} proxy, {len(urls)} URL, dan {len(user_agents)} user agent.{Style.RESET_ALL}")
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    while True:
+        try:
+            max_workers = int(input("Masukkan jumlah ThreadPoolExecutor (1-10): "))
+            if 1 <= max_workers <= 10:
+                break
+            else:
+                print(f"{Fore.YELLOW}Mohon masukkan angka antara 1 dan 10.{Style.RESET_ALL}")
+        except ValueError:
+            print(f"{Fore.YELLOW}Mohon masukkan angka yang valid.{Style.RESET_ALL}")
+
+    print(f"{Fore.CYAN}Menggunakan {max_workers} ThreadPoolExecutor.{Style.RESET_ALL}")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         while True:
             random.shuffle(urls)
             for url in urls:
