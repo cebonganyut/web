@@ -2,7 +2,7 @@ import requests
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import logging
 from colorama import Fore, Style, init
@@ -14,10 +14,16 @@ init(autoreset=True)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_file(filename):
-    with open(filename, 'r') as f:
-        return [line.strip() for line in f if line.strip()]
+    """Load lines from a file and return a list of non-empty lines."""
+    try:
+        with open(filename, 'r') as f:
+            return [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"{Fore.RED}Error: File {filename} tidak ditemukan.{Style.RESET_ALL}")
+        return []
 
 def simulate_user_behavior(session, url, user_agent):
+    """Simulate realistic user behavior on a given URL."""
     try:
         # Initial page visit
         response = session.get(url, timeout=30)
@@ -26,15 +32,14 @@ def simulate_user_behavior(session, url, user_agent):
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Simulate scrolling
+            # Simulate scrolling and time on site
             time.sleep(random.uniform(5, 15))
             
             # Click on a random link
             links = soup.find_all('a', href=True)
             if links:
                 random_link = random.choice(links)['href']
-                if not random_link.startswith(('http://', 'https://')):
-                    random_link = urlparse(url)._replace(path=random_link).geturl()
+                random_link = urljoin(url, random_link)  # Resolve relative URLs
                 print(f"{Fore.GREEN}Berhasil mengklik link: {random_link}{Style.RESET_ALL}")
                 session.get(random_link, timeout=30)
                 
@@ -42,13 +47,15 @@ def simulate_user_behavior(session, url, user_agent):
             time.sleep(random.uniform(10, 30))
         else:
             print(f"{Fore.RED}Gagal mengunjungi {url} - Status: {response.status_code}{Style.RESET_ALL}")
-    except Exception as e:
+    except requests.RequestException as e:
         print(f"{Fore.RED}Error saat mensimulasikan perilaku pengguna pada {url}: {str(e)}{Style.RESET_ALL}")
 
 def visit_url(url, proxies, user_agents):
+    """Set up a session with random proxy and user agent, then visit the URL."""
     parsed_url = urlparse(url)
     if not parsed_url.scheme:
         url = 'http://' + url
+
     proxy = random.choice(proxies)
     user_agent = random.choice(user_agents)
     
@@ -72,6 +79,8 @@ def visit_url(url, proxies, user_agents):
         session.headers.update(headers)
         session.proxies.update(proxy_dict)
         simulate_user_behavior(session, url, user_agent)
+    except ValueError:
+        print(f"{Fore.RED}Error: Proxy format tidak valid: {proxy}{Style.RESET_ALL}")
     except Exception as e:
         print(f"{Fore.RED}Error saat menyiapkan sesi untuk {url}: {str(e)}{Style.RESET_ALL}")
 
@@ -88,11 +97,11 @@ def main():
     
     while True:
         try:
-            max_workers = int(input("Masukkan jumlah ThreadPoolExecutor (1-100): "))
-            if 1 <= max_workers <= 100:
+            max_workers = int(input("Masukkan jumlah ThreadPoolExecutor (1-10): "))
+            if 1 <= max_workers <= 10:
                 break
             else:
-                print(f"{Fore.YELLOW}Mohon masukkan angka antara 1 dan 100.{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Mohon masukkan angka antara 1 dan 10.{Style.RESET_ALL}")
         except ValueError:
             print(f"{Fore.YELLOW}Mohon masukkan angka yang valid.{Style.RESET_ALL}")
     
