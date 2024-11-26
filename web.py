@@ -50,13 +50,37 @@ def simulate_user_behavior(session, url, user_agent):
     except requests.RequestException as e:
         print(f"{Fore.RED}Error saat mensimulasikan perilaku pengguna pada {url}: {str(e)}{Style.RESET_ALL}")
 
+def parse_residential_proxy(proxy_string):
+    """
+    Parse residential proxy string in format username:password@hostname:port
+    Returns a dictionary with proxy details
+    """
+    try:
+        # Split credentials and host:port
+        auth, host_port = proxy_string.split('@')
+        username, password = auth.split(':')
+        hostname, port = host_port.split(':')
+        
+        return {
+            'username': username,
+            'password': password,
+            'hostname': hostname,
+            'port': port
+        }
+    except ValueError:
+        print(f"{Fore.RED}Error: Format proxy tidak valid: {proxy_string}{Style.RESET_ALL}")
+        return None
+
 def visit_url(url, proxies, user_agents):
     """Set up a session with random proxy and user agent, then visit the URL."""
     parsed_url = urlparse(url)
     if not parsed_url.scheme:
         url = 'http://' + url
 
-    proxy = random.choice(proxies)
+    proxy_details = parse_residential_proxy(random.choice(proxies))
+    if not proxy_details:
+        return
+    
     user_agent = random.choice(user_agents)
     
     headers = {
@@ -69,18 +93,15 @@ def visit_url(url, proxies, user_agents):
     }
     
     try:
-        ip, port = proxy.split(':')
         proxy_dict = {
-            'http': f'http://{ip}:{port}',
-            'https': f'http://{ip}:{port}'
+            'http': f'http://{proxy_details["username"]}:{proxy_details["password"]}@{proxy_details["hostname"]}:{proxy_details["port"]}',
+            'https': f'https://{proxy_details["username"]}:{proxy_details["password"]}@{proxy_details["hostname"]}:{proxy_details["port"]}'
         }
         
         session = requests.Session()
         session.headers.update(headers)
         session.proxies.update(proxy_dict)
         simulate_user_behavior(session, url, user_agent)
-    except ValueError:
-        print(f"{Fore.RED}Error: Proxy format tidak valid: {proxy}{Style.RESET_ALL}")
     except Exception as e:
         print(f"{Fore.RED}Error saat menyiapkan sesi untuk {url}: {str(e)}{Style.RESET_ALL}")
 
